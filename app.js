@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   googleId: String,
+  secret: String,
 });
 
 // passportLocalMongoose 설정
@@ -101,16 +102,46 @@ app.get("/register", function (req, res) {
 });
 
 app.get("/secrets", function (req, res) {
-  if (req.isAuthenticated()) {
-    res.render("secrets");
-  } else {
-    res.redirect("/login");
-  }
+  // $ne => not equals   , 즉 secret이 null이 아닌 모든 사용자를 찾는다.
+  User.find({ secret: { $ne: null } }, function (err, foundUsers) {
+    if (err) {
+      console.log(err);
+    } else {
+      if (foundUsers) {
+        res.render("secrets", { usersWithSecrets: foundUsers });
+      }
+    }
+  });
 });
 
 app.get("/logout", function (req, res) {
   req.logout();
   res.redirect("/");
+});
+
+app.get("/submit", function (req, res) {
+  if (req.isAuthenticated()) {
+    res.render("submit");
+  } else {
+    res.redirect("/login");
+  }
+});
+
+app.post("/submit", function (req, res) {
+  const submittedSecret = req.body.secret;
+
+  User.findById(req.user.id, function (err, foundUser) {
+    if (err) {
+      console.log(err);
+    } else {
+      if (foundUser) {
+        foundUser.secret = submittedSecret;
+        foundUser.save(function () {
+          res.redirect("/secrets");
+        });
+      }
+    }
+  });
 });
 
 //POST
