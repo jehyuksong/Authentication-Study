@@ -9,8 +9,6 @@ const mongooseEncryption = require("mongoose-encryption");
 
 const app = express();
 
-console.log(process.env.API_KEY);
-
 // 사용 설정
 app.set("view engine", "ejs");
 
